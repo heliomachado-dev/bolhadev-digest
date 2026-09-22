@@ -1,0 +1,49 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Newsletter {
+  id          String   @id @default(cuid())
+  title       String
+  summaryWeb  String
+  summaryWpp  String
+  summaryPush String
+  date        DateTime @default(now())
+  tweets      Tweet[]
+}
+
+model Tweet {
+  id            String      @id @default(cuid())
+  originalId    String      @unique
+  author        String
+  text          String
+  likes         Int         @default(0)
+  retweets      Int         @default(0)
+  url           String
+  createdAt     DateTime    @default(now())
+  newsletterId  String?
+  newsletter    Newsletter? @relation(fields: [newsletterId], references: [id], onDelete: SetNull)
+}
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+}
+
+model Settings {
+  id             String   @id @default("default")
+  whatsappNumber String   @default("")
+  telegramChatId String   @default("")
+  telegramToken  String   @default("")
+  autoSchedule   Boolean  @default(false)
+  scheduleTime   String   @default("07:00")
+  updatedAt      DateTime @updatedAt
+}

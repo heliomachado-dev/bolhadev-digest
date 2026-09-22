@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  evolution-api:
+    image: cidadealta/evolution-api:v2.1.1
+    container_name: evolution-api
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      - SERVER_PORT=8080
+      - AUTH_TOKEN=sua_chave_secreta_evolution_aqui
+      - DATABASE_PROVIDER=local
+      - LOG_LEVEL=ERROR,WARN,INFO
+    volumes:
+      - evolution_instances:/evolution/instances
+
+volumes:
+  evolution_instances:
