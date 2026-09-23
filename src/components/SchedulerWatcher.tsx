@@ -4,12 +4,13 @@ import { useEffect } from 'react';
 
 export default function SchedulerWatcher() {
   useEffect(() => {
-    // Verifica a cada 60 segundos se o agendamento automático está ativado e se chegou o horário programado
+    // Fallback local: dispara quando o site está aberto no horário programado.
+    // Em produção o agendamento é server-side via cron da Vercel (GET /api/cron/generate).
     const interval = setInterval(async () => {
       try {
         const res = await fetch('/api/settings');
         const data = await res.json();
-        if (data.success && data.settings && data.settings.autoSchedule && data.settings.whatsappNumber) {
+        if (data.success && data.settings && data.settings.autoSchedule) {
           const now = new Date();
           const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
@@ -20,12 +21,16 @@ export default function SchedulerWatcher() {
             if (lastTrigger !== `${todayStr}-${currentTime}`) {
               localStorage.setItem('last_auto_trigger', `${todayStr}-${currentTime}`);
               console.log('Horário programado atingido! Disparando newsletter automática...');
-              await fetch('/api/cron/generate');
+              await fetch('/api/cron/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ mode: 'auto' }),
+              });
             }
           }
         }
       } catch (err) {
-        console.error('Erro no verificado de agendamento automático:', err);
+        console.error('Erro no verificador de agendamento automático:', err);
       }
     }, 60000);
 

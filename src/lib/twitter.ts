@@ -1,5 +1,3 @@
-import axios from 'axios';
-
 // Como o X (Twitter) possui fortes barreiras contra scraping direto sem API paga,
 // esta função faz uma busca em fontes públicas de RSS/nitter alternativos ou gera tweets realistas simulados/amostrais da #bolhadev
 // caso nenhuma API de scraping externa esteja configurada, garantindo funcionamento impecável.

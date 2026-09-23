@@ -31,6 +31,7 @@ export default function WhatsAppLoginButton() {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- polling de status do WhatsApp no mount
     fetchStatus();
     const timer = setInterval(() => {
       // Só faz o polling se estiver desconectado para economizar recursos e detectar pareamento

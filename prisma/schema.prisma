@@ -39,11 +39,13 @@ model PushSubscription {
 }
 
 model Settings {
-  id             String   @id @default("default")
-  whatsappNumber String   @default("")
-  telegramChatId String   @default("")
-  telegramToken  String   @default("")
-  autoSchedule   Boolean  @default(false)
-  scheduleTime   String   @default("07:00")
-  updatedAt      DateTime @updatedAt
+  id                String   @id @default("default")
+  whatsappNumber    String   @default("")
+  whatsappWebhook   String   @default("")
+  telegramChatId    String   @default("")
+  telegramToken     String   @default("")
+  autoSchedule      Boolean  @default(false)
+  scheduleTime      String   @default("07:00")
+  lastAutoSentDate  String   @default("")
+  updatedAt         DateTime @updatedAt
 }

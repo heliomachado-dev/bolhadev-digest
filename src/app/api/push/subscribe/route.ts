@@ -25,8 +25,9 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json({ success: true, message: 'Push subscription salva com sucesso!' });
-  } catch (error: any) {
-    console.error('Erro ao salvar push subscription:', error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Erro ao salvar inscrição';
+    console.error('Erro ao salvar push subscription:', message);
+    return NextResponse.json({ success: false, error: message }, { status: 500 });
   }
 }

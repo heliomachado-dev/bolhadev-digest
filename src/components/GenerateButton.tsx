@@ -4,6 +4,23 @@ import { useState } from 'react';
 import { Sparkles, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
+function describeResults(results: Record<string, { ok?: boolean; skipped?: boolean; error?: string }> | undefined) {
+  if (!results) return '';
+  const labels: Record<string, string> = {
+    telegram: 'Telegram',
+    push: 'Push',
+    whatsapp: 'WhatsApp',
+  };
+  return Object.entries(results)
+    .map(([key, res]) => {
+      const label = labels[key] || key;
+      if (res.ok) return `${label}: ✅ enviado`;
+      if (res.skipped) return `${label}: ⏭️ ${res.error || 'não configurado'}`;
+      return `${label}: ❌ ${res.error || 'falhou'}`;
+    })
+    .join('\n');
+}
+
 export default function GenerateButton() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -11,10 +28,17 @@ export default function GenerateButton() {
   const handleGenerate = async () => {
     try {
       setLoading(true);
-      const res = await fetch('/api/cron/generate');
+      const res = await fetch('/api/cron/generate', { method: 'POST' });
       const data = await res.json();
       if (data.success) {
-        alert('Newsletter gerada e disparada com sucesso!');
+        const details = describeResults(data.results);
+        alert(
+          'Newsletter gerada!\n\n' +
+            (details || 'Sem detalhes de envio.') +
+            (details && !data.results?.telegram?.ok
+              ? '\n\n⚠️ O Telegram não recebeu a mensagem. Confira os detalhes acima.'
+              : '')
+        );
         router.refresh();
       } else {
         alert('Erro ao gerar: ' + (data.error || 'Erro desconhecido'));

@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
-import { Send, Bell, Settings, BookOpen, Sparkles, MessageSquare } from 'lucide-react';
+import { Settings, BookOpen, Sparkles, MessageSquare } from 'lucide-react';
 import GenerateButton from '@/components/GenerateButton';
 import SchedulerWatcher from '@/components/SchedulerWatcher';
 
@@ -52,7 +52,7 @@ export default async function Home() {
             <Sparkles className="w-12 h-12 text-indigo-400 mx-auto animate-pulse" />
             <h2 className="text-xl font-semibold">Nenhuma edição gerada ainda</h2>
             <p className="text-slate-400 max-w-md mx-auto text-sm">
-              Clique no botão <strong className="text-indigo-400">"Gerar Edição Agora"</strong> acima para coletar os tweets da #bolhadev e criar sua primeira newsletter inteligente.
+              Clique no botão <strong className="text-indigo-400">&quot;Gerar Edição Agora&quot;</strong> acima para coletar os tweets da #bolhadev e criar sua primeira newsletter inteligente.
             </p>
           </div>
         ) : (
@@ -104,7 +104,7 @@ export default async function Home() {
                           rel="noopener noreferrer"
                           className="bg-slate-900/80 hover:bg-slate-800/80 border border-slate-800 hover:border-indigo-500/40 p-4 rounded-xl transition flex flex-col justify-between space-y-3 group"
                         >
-                          <p className="text-sm text-slate-200 line-clamp-3">"{tweet.text}"</p>
+                          <p className="text-sm text-slate-200 line-clamp-3">&quot;{tweet.text}&quot;</p>
                           <div className="flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-slate-800/60">
                             <span className="font-medium text-indigo-400 group-hover:underline">
                               @{tweet.author}
