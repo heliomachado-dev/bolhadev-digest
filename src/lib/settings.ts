@@ -12,16 +12,15 @@ export type EffectiveSettings = {
 
 // Lê as settings do banco com fallback para variáveis de ambiente.
 //
-// - Local (SQLite): os valores salvos na UI prevalecem.
-// - Vercel (filesystem read-only / banco efêmero): a leitura do banco pode
-//   falhar ou vir desatualizada, então as env vars garantem que o agendamento
-//   e o Telegram continuem funcionando.
+// - Banco disponível (local SQLite ou Neon na Vercel): o banco é a fonte de
+//   verdade — a UI de Configurações funciona e persiste normalmente.
+// - Banco indisponível (FS read-only, DATABASE_URL ausente): as env vars
+//   garantem que agendamento e Telegram continuem funcionando.
 //
 // Regras de precedência:
-// - telegram*/whatsapp*: banco primeiro, env como fallback.
-// - scheduleTime: env primeiro (permite forçar o horário na Vercel sem gravar
-//   no banco), depois banco, depois default.
-// - autoSchedule: ativo se estiver true no banco OU na env AUTO_SCHEDULE.
+// - telegram*/whatsapp*/lastAutoSentDate: banco primeiro, env como fallback.
+// - scheduleTime: banco primeiro, depois env, depois default.
+// - autoSchedule: se a linha existe usa o banco; senão usa a env AUTO_SCHEDULE.
 export async function getEffectiveSettings(): Promise<EffectiveSettings> {
   let db: Partial<EfficientSettingsRow> | null = null;
 
@@ -39,8 +38,8 @@ export async function getEffectiveSettings(): Promise<EffectiveSettings> {
     whatsappWebhook: db?.whatsappWebhook || process.env.WHATSAPP_WEBHOOK_URL || '',
     telegramChatId: db?.telegramChatId || process.env.TELEGRAM_CHAT_ID || '',
     telegramToken: db?.telegramToken || process.env.TELEGRAM_BOT_TOKEN || '',
-    autoSchedule: Boolean(db?.autoSchedule) || process.env.AUTO_SCHEDULE === 'true',
-    scheduleTime: process.env.SCHEDULE_TIME || db?.scheduleTime || '07:00',
+    autoSchedule: db ? Boolean(db.autoSchedule) : process.env.AUTO_SCHEDULE === 'true',
+    scheduleTime: db?.scheduleTime || process.env.SCHEDULE_TIME || '07:00',
     lastAutoSentDate: db?.lastAutoSentDate || '',
   };
 }

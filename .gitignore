@@ -33,6 +33,11 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# banco local (contém o token do Telegram — nunca versionar; backup pós-migração Neon)
+/prisma/dev.db
+/prisma/dev.db-journal
+/prisma/*.db-journal
+
 # vercel
 .vercel
 
