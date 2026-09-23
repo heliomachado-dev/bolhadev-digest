@@ -1,7 +1,9 @@
 // Fonte de conteúdo curado do BolhaDev Digest.
 //
 // Hierarquia de fontes, com fallback gracioso em cada nível:
-// 1. Apify (`APIFY_API_TOKEN`) — tweets REAIS da #bolhadev via apidojo/tweet-scraper.
+// 1. Apify (`APIFY_API_TOKEN`) — tweets REAIS da #bolhadev via danek/twitter-scraper
+//    (o único scraper top da store que permite API no plano free: 20 results/run,
+//    US$0,0003/tweet ≈ US$0,11/mês no nosso uso, dentro dos US$5/mês do free).
 // 2. APIs públicas e gratuitas (sem chave) — Hacker News (front page) + DEV Community
 //    (artigos em alta do dia). Funcionam mesmo sem nenhuma configuração extra.
 // 3. Nada disponível → lista vazia: a edição continua sendo gerada, sem conteúdo inventado.
@@ -27,17 +29,24 @@ const num = (v: unknown): number => (typeof v === 'number' && Number.isFinite(v)
 const asRecord = (v: unknown): Record<string, unknown> =>
   v && typeof v === 'object' ? (v as Record<string, unknown>) : {};
 
-/** 1) Tweets reais da #bolhadev via Apify (apidojo/tweet-scraper). */
+/**
+ * 1) Tweets reais da #bolhadev via Apify (danek/twitter-scraper).
+ * Escolhido por combinação de confiança + plano free utilizável: 14,6M execuções/mês,
+ * 100% de runs OK, US$0,0003/tweet no FREE e API liberada (limite de 20 results/run —
+ * usamos 12). Alternativas premium: apidojo/tweet-scraper e apidojo/twitter-scraper-lite
+ * (ambos ótimos, mas restringem o plano free a "demo, 5 runs/mês").
+ */
 async function fetchFromApify(): Promise<CuratedItem[]> {
   const token = process.env.APIFY_API_TOKEN;
   if (!token) return [];
 
   const res = await fetch(
-    `https://api.apify.com/v2/acts/apidojo~tweet-scraper/run-sync-get-dataset-items?token=${token}&timeout=45`,
+    `https://api.apify.com/v2/acts/danek~twitter-scraper/run-sync-get-dataset-items?token=${token}&timeout=45`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ searchTerms: ['#bolhadev'], maxItems: 12, sort: 'Latest' }),
+      // Input documentado do danek: query de busca + máximo de posts (free cap = 20)
+      body: JSON.stringify({ query: '#bolhadev', max_posts: 12 }),
       signal: AbortSignal.timeout(55_000),
     }
   );
@@ -51,15 +60,19 @@ async function fetchFromApify(): Promise<CuratedItem[]> {
     .slice(0, 12);
 }
 
-/** Mapeamento tolerante: o schema de saída do ator pode mudar entre versões. */
+/**
+ * Mapeamento tolerante: o output do danek não tem schema público detalhado,
+ * então cobrimos as variantes comuns de formatos de tweet/Twitter API.
+ * (Validar no primeiro teste ao vivo e ajustar se necessário.)
+ */
 function mapApifyTweet(raw: unknown, index: number): CuratedItem | null {
   const r = asRecord(raw);
-  const text = str(r.text) || str(r.full_text) || str(r.fullText);
+  const text = str(r.text) || str(r.full_text) || str(r.fullText) || str(r.fullTextUnescaped);
   if (!text) return null;
 
   const author = asRecord(r.author);
   const user = asRecord(r.user);
-  const id = str(r.id) || str(r.id_str) || `idx-${index}`;
+  const id = str(r.id) || str(r.id_str) || str(r.idStr) || `idx-${index}`;
 
   return {
     originalId: `x:${id}`,
@@ -70,14 +83,24 @@ function mapApifyTweet(raw: unknown, index: number): CuratedItem | null {
       str(author.userName) ||
       str(author.screen_name) ||
       str(user.screen_name) ||
+      str(user.name) ||
       'bolhadev'
     ).replace(/^@/, ''),
     text,
-    likes: num(r.likeCount) || num(r.likes) || num(r.like_count) || num(r.favorite_count),
-    retweets: num(r.retweetCount) || num(r.retweets) || num(r.retweet_count),
+    likes:
+      num(r.likeCount) ||
+      num(r.likes) ||
+      num(r.like_count) ||
+      num(r.favorite_count) ||
+      num(r.favorites),
+    retweets:
+      num(r.retweetCount) || num(r.retweets) || num(r.retweet_count) || num(r.retweets_count),
     url:
       str(r.url) ||
-      (str(r.id) ? `https://x.com/i/status/${str(r.id)}` : 'https://x.com/hashtag/bolhadev'),
+      str(r.twitterUrl) ||
+      (str(r.id) || str(r.id_str)
+        ? `https://x.com/i/status/${str(r.id) || str(r.id_str)}`
+        : 'https://x.com/hashtag/bolhadev'),
   };
 }
 

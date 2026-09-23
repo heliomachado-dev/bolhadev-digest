@@ -42,7 +42,7 @@ flowchart TD
     API["/api/cron/generate<br/>janela de horário (BRT) + dedupe diário"]
 
     API --> SRC{"🔍 Melhor fonte do dia"}
-    SRC -->|"APIFY_API_TOKEN"| X["Tweets reais da #bolhadev<br/>(Apify · apidojo/tweet-scraper)"]
+    SRC -->|"APIFY_API_TOKEN"| X["Tweets reais da #bolhadev<br/>(Apify · danek/twitter-scraper)"]
     SRC -->|"sem token / falha"| COMM["Hacker News front page<br/>+ DEV Community em alta<br/>(APIs gratuitas, sem chave)"]
 
     X --> AI["🧠 Gemini<br/>summaryWeb · summaryWpp · summaryPush"]
@@ -108,7 +108,7 @@ Abra [http://localhost:3000](http://localhost:3000), clique em **«Gerar Ediçã
 | `TELEGRAM_CHAT_ID` | ✅ | ID do canal/grupo de destino |
 | `SCHEDULE_TIME` | ⭕ | Horário padrão do envio (ex.: `09:17`, fuso de Brasília) |
 | `AUTO_SCHEDULE` | ⭕ | `true` ativa o agendamento automático |
-| `APIFY_API_TOKEN` | ⭕ | **Tweets reais da #bolhadev** via [Apify](https://apify.com) (`apidojo/tweet-scraper`) |
+| `APIFY_API_TOKEN` | ⭕ | **Tweets reais da #bolhadev** via [Apify](https://apify.com) (`danek/twitter-scraper` — free: 20/run, ~US$0,11/mês) |
 | `NEXT_PUBLIC_VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` | ⭕ | Web Push — gere com `npx web-push generate-vapid-keys` |
 | `WHATSAPP_WEBHOOK_URL` | ⭕ | Webhook que recebe o resumo de WhatsApp |
 
