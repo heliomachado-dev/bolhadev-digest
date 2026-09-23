@@ -45,8 +45,10 @@ async function fetchFromApify(): Promise<CuratedItem[]> {
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      // Input documentado do danek: query de busca + máximo de posts (free cap = 20)
-      body: JSON.stringify({ query: '#bolhadev', max_posts: 12 }),
+      // Input verificado ao vivo em 2026-09-23: query + busca "Latest" (o default
+      // "Top" retorna os virais antigos e esgotaria os tweets novos nos dias seguintes).
+      // No plano free o ator devolve no máximo 20 items/run (nosso slice limita a 12).
+      body: JSON.stringify({ query: '#bolhadev', max_posts: 12, search_type: 'Latest' }),
       signal: AbortSignal.timeout(55_000),
     }
   );
@@ -61,46 +63,44 @@ async function fetchFromApify(): Promise<CuratedItem[]> {
 }
 
 /**
- * Mapeamento tolerante: o output do danek não tem schema público detalhado,
- * então cobrimos as variantes comuns de formatos de tweet/Twitter API.
- * (Validar no primeiro teste ao vivo e ajustar se necessário.)
+ * Mapeia o output do danek (validado ao vivo em 2026-09-23):
+ * { tweet_id, screen_name, text, favorites, retweets, created_at, ... } — sem campo
+ * url, então montamos o link canônico do tweet. Mantemos as variantes clássicas da
+ * Twitter API por tolerância a mudanças futuras do ator.
  */
-function mapApifyTweet(raw: unknown, index: number): CuratedItem | null {
+function mapApifyTweet(raw: unknown): CuratedItem | null {
   const r = asRecord(raw);
-  const text = str(r.text) || str(r.full_text) || str(r.fullText) || str(r.fullTextUnescaped);
-  if (!text) return null;
+  const text = str(r.text) || str(r.full_text) || str(r.fullText);
+  const id = str(r.tweet_id) || str(r.id) || str(r.id_str) || str(r.idStr);
+  if (!text || !id) return null; // sem id não há como deduplicar — descarta
 
   const author = asRecord(r.author);
   const user = asRecord(r.user);
-  const id = str(r.id) || str(r.id_str) || str(r.idStr) || `idx-${index}`;
+  const screenName = str(r.screen_name);
 
   return {
     originalId: `x:${id}`,
     author: (
-      str(r.author) ||
+      screenName ||
       str(r.userName) ||
       str(r.username) ||
       str(author.userName) ||
       str(author.screen_name) ||
       str(user.screen_name) ||
-      str(user.name) ||
       'bolhadev'
     ).replace(/^@/, ''),
     text,
     likes:
+      num(r.favorites) ||
       num(r.likeCount) ||
       num(r.likes) ||
       num(r.like_count) ||
-      num(r.favorite_count) ||
-      num(r.favorites),
-    retweets:
-      num(r.retweetCount) || num(r.retweets) || num(r.retweet_count) || num(r.retweets_count),
+      num(r.favorite_count),
+    retweets: num(r.retweets) || num(r.retweetCount) || num(r.retweet_count),
     url:
       str(r.url) ||
       str(r.twitterUrl) ||
-      (str(r.id) || str(r.id_str)
-        ? `https://x.com/i/status/${str(r.id) || str(r.id_str)}`
-        : 'https://x.com/hashtag/bolhadev'),
+      (screenName ? `https://x.com/${screenName}/status/${id}` : `https://x.com/i/status/${id}`),
   };
 }
 
