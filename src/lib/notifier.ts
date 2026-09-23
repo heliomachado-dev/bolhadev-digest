@@ -54,7 +54,7 @@ export async function sendTelegramMessage(message: string): Promise<ChannelResul
       '🚀 *BOLHADEV DIGEST & TECH NEWS*\n' +
       '📅 *Data:* ' + new Date().toLocaleDateString('pt-BR') + '\n\n' +
       message + '\n\n' +
-      '🌐 _Acesse o BolhaDev Digest PWA para ver os tweets em destaque._';
+      '🌐 _Acesse o BolhaDev Digest PWA para ver os destaques completos._';
 
     const url = `https://api.telegram.org/bot${botToken}/sendMessage`;
 

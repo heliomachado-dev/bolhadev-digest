@@ -1,10 +1,15 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getEffectiveSettings } from '@/lib/settings';
-import { fetchTechNewsAndTweets, summarizeTweets } from '@/lib/ai';
+import { summarizeTweets } from '@/lib/ai';
+import { fetchCuratedContent } from '@/lib/twitter';
 import { sendTelegramMessage, sendPushNotifications, sendWhatsAppWebhookMessage } from '@/lib/notifier';
 
 export const dynamic = 'force-dynamic';
+
+// Cabeçalha de segurança: com APIFY configurada, a coleta pode demorar alguns
+// segundos — garante folga para a execução completa dentro da Vercel.
+export const maxDuration = 60;
 
 type Trigger = 'cron' | 'watcher' | 'manual';
 
@@ -58,12 +63,11 @@ async function generateAndDispatch(trigger: Trigger) {
     }
   }
 
-  // Coletar dados e gerar edição
-  const tweets = await fetchTechNewsAndTweets();
-  const aiResult = await summarizeTweets(tweets);
+  // Coletar dados reais do dia e gerar a edição
+  const { items, source } = await fetchCuratedContent();
+  const aiResult = await summarizeTweets(items, source);
 
-  // Persistência é best-effort: falha de banco (ex.: FS read-only na Vercel)
-  // não pode impedir o disparo dos canais
+  // Persistência é best-effort: falha de banco não pode impedir o disparo
   let newsletterId: string | null = null;
   try {
     const newsletter = await prisma.newsletter.create({
@@ -72,6 +76,7 @@ async function generateAndDispatch(trigger: Trigger) {
         summaryWeb: aiResult.summaryWeb,
         summaryWpp: aiResult.summaryWpp,
         summaryPush: aiResult.summaryPush,
+        source,
       },
     });
     newsletterId = newsletter.id;
@@ -80,6 +85,21 @@ async function generateAndDispatch(trigger: Trigger) {
       'Não foi possível salvar a edição no banco (seguindo para o disparo):',
       e instanceof Error ? e.message : e
     );
+  }
+
+  // Liga os destaques coletados à edição para exibição no leitor
+  if (newsletterId && items.length > 0) {
+    try {
+      await prisma.tweet.createMany({
+        data: items.map((item) => ({ ...item, newsletterId })),
+        skipDuplicates: true,
+      });
+    } catch (e) {
+      console.warn(
+        'Não foi possível salvar os destaques da edição:',
+        e instanceof Error ? e.message : e
+      );
+    }
   }
 
   // Disparo multicanal com resultado real por canal (nada de "sucesso" falso)

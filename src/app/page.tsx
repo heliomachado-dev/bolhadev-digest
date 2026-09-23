@@ -15,6 +15,7 @@ export default async function Home() {
 
   const latestNewsletter = newsletters[0];
   const olderNewsletters = newsletters.slice(1);
+  const latestIsX = latestNewsletter?.source === 'x';
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
@@ -52,7 +53,7 @@ export default async function Home() {
             <Sparkles className="w-12 h-12 text-indigo-400 mx-auto animate-pulse" />
             <h2 className="text-xl font-semibold">Nenhuma edição gerada ainda</h2>
             <p className="text-slate-400 max-w-md mx-auto text-sm">
-              Clique no botão <strong className="text-indigo-400">&quot;Gerar Edição Agora&quot;</strong> acima para coletar os tweets da #bolhadev e criar sua primeira newsletter inteligente.
+              Clique no botão <strong className="text-indigo-400">&quot;Gerar Edição Agora&quot;</strong> acima para coletar os destaques do dia e criar sua primeira newsletter inteligente.
             </p>
           </div>
         ) : (
@@ -76,7 +77,7 @@ export default async function Home() {
                     </span>
                   </div>
                   <div className="text-xs text-indigo-300 font-medium">
-                    {latestNewsletter.tweets.length} tweets curados
+                    {latestNewsletter.tweets.length} {latestIsX ? 'tweets' : 'destaques'} curados
                   </div>
                 </div>
 
@@ -93,7 +94,7 @@ export default async function Home() {
                 {latestNewsletter.tweets.length > 0 && (
                   <div className="space-y-3 pt-4 border-t border-slate-800">
                     <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider">
-                      Tweets em Destaque nesta Edição
+                      {latestIsX ? 'Tweets em Destaque nesta Edição' : 'Destaques desta Edição'}
                     </h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {latestNewsletter.tweets.map((tweet) => (
@@ -141,7 +142,7 @@ export default async function Home() {
                         <p className="text-sm text-slate-400 line-clamp-2">{item.summaryPush}</p>
                       </div>
                       <div className="pt-3 border-t border-slate-800/60 flex items-center justify-between text-xs text-indigo-400 font-medium">
-                        <span>{item.tweets.length} tweets analisados</span>
+                        <span>{item.tweets.length} destaques analisados</span>
                         <span>Ver detalhes →</span>
                       </div>
                     </div>
@@ -155,7 +156,7 @@ export default async function Home() {
 
       {/* Footer */}
       <footer className="border-t border-slate-800 bg-slate-900/30 py-6 mt-12 text-center text-xs text-slate-500">
-        <p>BolhaDev Digest • Feito com Next.js, Gemini AI, SQLite e WhatsApp API.</p>
+        <p>BolhaDev Digest • Next.js • Prisma + Neon Postgres • Gemini IA • Telegram, WhatsApp &amp; Push • Vercel Cron</p>
       </footer>
       <SchedulerWatcher />
     </div>

@@ -13,6 +13,9 @@ model Newsletter {
   summaryWeb  String
   summaryWpp  String
   summaryPush String
+  // Origem do conteúdo desta edição: "x" (tweets reais da #bolhadev via Apify)
+  // ou "community" (Hacker News + DEV Community)
+  source      String   @default("community")
   date        DateTime @default(now())
   tweets      Tweet[]
 }
