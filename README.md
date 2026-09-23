@@ -105,7 +105,8 @@ Abra [http://localhost:3000](http://localhost:3000), clique em **«Gerar Ediçã
 | `GEMINI_API_KEY` | ✅ | Chave do [Google AI Studio](https://aistudio.google.com/) (free tier: 20 req/dia) |
 | `CRON_SECRET` | ✅ (produção) | Segredo do cron — gere com `openssl rand -hex 32` |
 | `TELEGRAM_BOT_TOKEN` | ✅ | Token do bot ([@BotFather](https://t.me/BotFather)) |
-| `TELEGRAM_CHAT_ID` | ✅ | ID do canal/grupo de destino |
+| `TELEGRAM_CHAT_ID` | ✅ | ID(s) de destino — aceita **vários separados por vírgula** (pessoal, grupo ou canal) |
+| `ADMIN_USERNAME` / `ADMIN_PASSWORD` | ✅ | **Login do painel** (Basic Auth em `/settings` e APIs admin) — sem elas as rotas admin respondem `503` |
 | `SCHEDULE_TIME` | ⭕ | Horário padrão do envio (ex.: `09:17`, fuso de Brasília) |
 | `AUTO_SCHEDULE` | ⭕ | `true` ativa o agendamento automático |
 | `APIFY_API_TOKEN` | ⭕ | **Tweets reais da #bolhadev** via [Apify](https://apify.com) (`danek/twitter-scraper` — free: 20/run, ~US$0,11/mês) |
@@ -119,12 +120,19 @@ Abra [http://localhost:3000](http://localhost:3000), clique em **«Gerar Ediçã
 1. O `vercel.json` declara **24 jobs horários** (`0 H * * *`) — no plano Hobby cada job roda **uma vez por dia**, então um job por hora garante cobertura total.
 2. A rota `GET /api/cron/generate` valida a **hora de Brasília** contra o `scheduleTime` e o **dedupe diário** (`lastAutoSentDate`) → **exatamente uma edição por dia**, na janela certa.
 3. Autenticação: header `Authorization: Bearer $CRON_SECRET` (a Vercel envia sozinha quando a env var existe; chamadas sem token recebem `401`).
-4. `POST /api/cron/generate` dispara manualmente pela UI ou pelo watcher local (`mode: "auto"`).
+4. `POST /api/cron/generate` dispara manualmente pela UI — **protegido pelo login do admin** (`src/proxy.ts`).
+
+## 🔐 Segurança
+
+- **Painel protegido** — `src/proxy.ts` (proxy do Next 16) aplica **HTTP Basic Auth** em `/settings`, `POST/GET /api/settings*` e `POST /api/cron/generate`: sem login ninguém lê o bot token nem dispara edições. Fail-closed (`503`) se as envs `ADMIN_*` não existirem.
+- **Cron** — só o Vercel Cron autenticado com `CRON_SECRET` gera a edição automática.
+- **Site público** — a home e as edições ficam abertos; segredos nunca aparecem lá.
+- **Segredos no git** — `.env` ignorado desde o início, `.env.example` só com placeholders e token antigo de bot já revogado.
 
 ## 📡 Canais
 
-- **✈️ Telegram** — bot próprio; envio com `parse_mode` e *fallback* para texto puro se o Markdown falhar.
-- **🔔 Web Push** — inscrição pelo leitor PWA com chaves VAPID.
+- **✈️ Telegram** — bot próprio; envio para **um ou mais destinos separados por vírgula** (chat pessoal + grupo/canal — o bot precisa ser admin no canal) com *fallback* para texto puro se o Markdown falhar.
+- **🔔 Web Push** — botão **“Receber aviso”** no topo do site: qualquer visitante ativa a notificação diária no navegador (permissão + VAPID).
 - **💬 WhatsApp** — POST para o seu webhook (Evolution API / Baileys) com o resumo formatado.
 - **🧪 Teste sem disparar tudo** — o painel de Configurações tem botão de teste por canal (`POST /api/settings/test`).
 
@@ -132,21 +140,23 @@ Abra [http://localhost:3000](http://localhost:3000), clique em **«Gerar Ediçã
 
 ```
 src/
+├── proxy.ts                 # Basic Auth do painel e das rotas admin (Next 16)
 ├── app/
 │   ├── page.tsx              # leitor da edição + cards de destaque
 │   ├── settings/             # painel: horário, canais, teste de envio
 │   └── api/
-│       ├── cron/generate/    # GET (cron, protegido) · POST (manual/watcher)
-│       ├── settings/         # configurações + teste por canal
-│       └── push/             # inscrição de Web Push
-├── components/               # GenerateButton, SchedulerWatcher, login WhatsApp
+│       ├── cron/generate/    # GET (cron, protegido) · POST (manual, login admin)
+│       ├── settings/         # configurações + teste por canal (login admin)
+│       └── push/             # inscrição de Web Push (pública)
+├── components/               # GenerateButton, PushSubscribeButton, SchedulerWatcher
 └── lib/
     ├── twitter.ts            # fontes em camadas: Apify → HN + DEV → vazio
     ├── ai.ts                 # Gemini + fallback real sem IA
-    ├── notifier.ts           # Telegram · Push · WhatsApp (resultado por canal)
+    ├── notifier.ts           # Telegram (multi-destino) · Push · WhatsApp
     ├── settings.ts           # config: banco primeiro, env como fallback
     └── prisma.ts
 prisma/schema.prisma          # Newsletter · Tweet · Settings · PushSubscription
+public/sw.js                  # Service Worker vanilla (push + cache PWA)
 vercel.json                   # 24 crons horários
 scripts/                      # e2e-cron · cleanup · migração SQLite→Neon
 ```
@@ -158,6 +168,10 @@ O repositório está conectado à Vercel: **`git push` no `main` deploya sozinho
 1. Crie o projeto na Vercel e configure as variáveis acima (Environment Variables → **Production**).
 2. Garanta que **Settings → Deployment Protection** está desligado para *Production* (senão o site e o cron caem na página de login da Vercel).
 3. Confirme os crons em **Settings → Cron Jobs** (o botão *Run* permite um teste manual) — os logs de cada execução ficam em **Observability**.
+
+## 📄 Licença
+
+[MIT](./LICENSE) © heliomachado-dev — use, estude e distribua livremente.
 
 ---
 

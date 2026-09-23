@@ -29,6 +29,11 @@ export default function GenerateButton() {
     try {
       setLoading(true);
       const res = await fetch('/api/cron/generate', { method: 'POST' });
+      if (res.status === 401 || res.status === 503) {
+        alert('Acesso restrito 🔒\n\nA geração manual é do administrador. Faça login em Configurações (usuário e senha do admin) e tente novamente.');
+        router.push('/settings');
+        return;
+      }
       const data = await res.json();
       if (data.success) {
         const details = describeResults(data.results);

@@ -9,6 +9,7 @@ export default function SchedulerWatcher() {
     const interval = setInterval(async () => {
       try {
         const res = await fetch('/api/settings');
+        if (!res.ok) return; // sem login admin não há o que observar (401/503)
         const data = await res.json();
         if (data.success && data.settings && data.settings.autoSchedule) {
           const now = new Date();

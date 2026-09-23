@@ -124,9 +124,12 @@ export default function SettingsPage() {
               <Send className="w-5 h-5 text-sky-400" /> Telegram Bot
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <input type="text" value={telegramChatId} onChange={(e) => setTelegramChatId(e.target.value)} placeholder="Chat ID" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-slate-100" />
+              <input type="text" value={telegramChatId} onChange={(e) => setTelegramChatId(e.target.value)} placeholder="Chat ID (ou lista separada por vírgula)" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-slate-100" />
               <input type="text" value={telegramToken} onChange={(e) => setTelegramToken(e.target.value)} placeholder="Bot Token" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-slate-100" />
             </div>
+            <p className="text-xs text-slate-500">
+              Aceita um ou mais destinos separados por vírgula — seu chat pessoal, um grupo ou um canal (o bot precisa ser admin no canal/grupo).
+            </p>
             <div className="flex flex-wrap items-center gap-3">
               <button
                 type="button"

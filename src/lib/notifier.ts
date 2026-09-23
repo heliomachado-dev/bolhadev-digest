@@ -39,6 +39,8 @@ if (process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
 }
 
 // Canal 1: Telegram Bot (Oficial, estável e instantâneo via HTTP)
+// Aceita múltiplos destinos separados por vírgula: "6036001223, -1001234567890"
+// (chat pessoal + grupo/canal — no canal o bot precisa ser admin).
 export async function sendTelegramMessage(message: string): Promise<ChannelResult> {
   try {
     const settings = await getEffectiveSettings();
@@ -50,6 +52,11 @@ export async function sendTelegramMessage(message: string): Promise<ChannelResul
       return { ok: false, skipped: true, error: 'Telegram não configurado (Chat ID ou Bot Token ausentes)' };
     }
 
+    const chatIds = String(chatId)
+      .split(',')
+      .map((id) => id.trim())
+      .filter(Boolean);
+
     const formattedMessage =
       '🚀 *BOLHADEV DIGEST & TECH NEWS*\n' +
       '📅 *Data:* ' + new Date().toLocaleDateString('pt-BR') + '\n\n' +
@@ -57,42 +64,52 @@ export async function sendTelegramMessage(message: string): Promise<ChannelResul
       '🌐 _Acesse o BolhaDev Digest PWA para ver os destaques completos._';
 
     const url = `https://api.telegram.org/bot${botToken}/sendMessage`;
+    let sent = 0;
+    let usedFallback = false;
+    const failures: string[] = [];
 
-    try {
-      const response = await axios.post(url, {
-        chat_id: chatId,
-        text: formattedMessage,
-        parse_mode: 'Markdown',
-      });
-      console.log('✅ Mensagem enviada com sucesso no Telegram!');
-      return { ok: true, detail: response.data };
-    } catch (firstError: unknown) {
-      const status = (firstError as TelegramError).response?.status;
-      const desc = describeError(firstError);
+    for (const id of chatIds) {
+      try {
+        await axios.post(url, { chat_id: id, text: formattedMessage, parse_mode: 'Markdown' });
+        sent += 1;
+        console.log(`✅ Mensagem enviada com sucesso no Telegram (chat ${id})!`);
+      } catch (firstError: unknown) {
+        const status = (firstError as TelegramError).response?.status;
+        const desc = describeError(firstError);
 
-      // Fallback: se o Markdown gerado não puder ser parseado, reenvia sem formatação
-      const isMarkdownError =
-        status === 400 && /can't parse entities|can't find end of the entity|unsupported start tag/i.test(desc);
+        // Fallback: se o Markdown gerado não puder ser parseado, reenvia sem formatação
+        const isMarkdownError =
+          status === 400 && /can't parse entities|can't find end of the entity|unsupported start tag/i.test(desc);
 
-      if (isMarkdownError) {
-        console.warn('Markdown inválido no resumo do Telegram. Reenviando sem parse_mode...', desc);
-        try {
-          const response = await axios.post(url, {
-            chat_id: chatId,
-            text: formattedMessage,
-          });
-          console.log('✅ Mensagem enviada sem Markdown (fallback) no Telegram!');
-          return { ok: true, fallback: 'plain-text', detail: response.data };
-        } catch (retryError: unknown) {
-          const retryDesc = describeError(retryError);
-          console.error('Erro ao enviar mensagem no Telegram (fallback):', retryDesc);
-          return { ok: false, error: retryDesc };
+        if (isMarkdownError) {
+          console.warn('Markdown inválido no resumo do Telegram. Reenviando sem parse_mode...', desc);
+          try {
+            await axios.post(url, { chat_id: id, text: formattedMessage });
+            sent += 1;
+            usedFallback = true;
+            console.log(`✅ Mensagem enviada sem Markdown (fallback) no Telegram (chat ${id})!`);
+            continue;
+          } catch (retryError: unknown) {
+            const retryDesc = describeError(retryError);
+            console.error('Erro ao enviar mensagem no Telegram (fallback):', retryDesc);
+            failures.push(`${id}: ${retryDesc}`);
+            continue;
+          }
         }
-      }
 
-      console.error('Erro ao enviar mensagem no Telegram:', desc);
-      return { ok: false, error: desc };
+        console.error('Erro ao enviar mensagem no Telegram:', desc);
+        failures.push(`${id}: ${desc}`);
+      }
     }
+
+    if (sent > 0) {
+      return {
+        ok: true,
+        ...(usedFallback ? { fallback: 'plain-text' } : {}),
+        detail: { recipients: chatIds.length, sent, failures },
+      };
+    }
+    return { ok: false, error: failures.join(' | ') || 'Falha ao enviar no Telegram' };
   } catch (error: unknown) {
     const errorMsg = describeError(error);
     console.error('Erro ao enviar mensagem no Telegram:', errorMsg);

@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
 import { Settings, BookOpen, Sparkles, MessageSquare } from 'lucide-react';
 import GenerateButton from '@/components/GenerateButton';
+import PushSubscribeButton from '@/components/PushSubscribeButton';
 import SchedulerWatcher from '@/components/SchedulerWatcher';
 
 export const dynamic = 'force-dynamic';
@@ -34,6 +35,7 @@ export default async function Home() {
             </div>
           </div>
           <div className="flex items-center space-x-3">
+            <PushSubscribeButton />
             <GenerateButton />
             <Link
               href="/settings"
