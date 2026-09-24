@@ -4,7 +4,11 @@
 
 **Newsletter inteligente de tecnologia: curadoria automática, resumo por IA e disparo multicanal — todo dia, sem você tocar em nada.**
 
+[**🌐 Acessar o site**](https://bolhadev-digest-machado15.vercel.app) · [**✈️ Entrar no canal do Telegram**](https://t.me/bolhadev_digest)
+
 [![Em produção](https://img.shields.io/badge/Em%20produção-Vercel-000000?logo=vercel&logoColor=white)](https://bolhadev-digest-machado15.vercel.app)
+[![Site](https://img.shields.io/badge/Site-bolhadev--digest-0EA5E9?logo=googlechrome&logoColor=white)](https://bolhadev-digest-machado15.vercel.app)
+[![Canal no Telegram](https://img.shields.io/badge/Canal%20no%20Telegram-%40bolhadev%5Fdigest-26A5E4?logo=telegram&logoColor=white)](https://t.me/bolhadev_digest)
 [![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=nextdotjs&logoColor=white)](https://nextjs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 [![Prisma](https://img.shields.io/badge/Prisma-6-2D3748?logo=prisma&logoColor=white)](https://www.prisma.io)
@@ -85,6 +89,8 @@ npm run dev
 
 Abra [http://localhost:3000](http://localhost:3000), clique em **«Gerar Edição Agora»** e veja a edição nascer.
 
+> ☁️ **Em produção:** [bolhadev-digest-machado15.vercel.app](https://bolhadev-digest-machado15.vercel.app) · ✈️ **Edições diárias:** canal [**@bolhadev_digest**](https://t.me/bolhadev_digest)
+
 ### 🧰 Scripts
 
 | Comando | Descrição |
@@ -132,7 +138,7 @@ Abra [http://localhost:3000](http://localhost:3000), clique em **«Gerar Ediçã
 
 ## 📡 Canais
 
-- **✈️ Telegram** — bot próprio; envio para **um ou mais destinos separados por vírgula** (chat pessoal + grupo/canal — o bot precisa ser admin no canal) com *fallback* para texto puro se o Markdown falhar.
+- **✈️ Telegram** — bot próprio; envio para **um ou mais destinos separados por vírgula** (chat pessoal + grupo/canal — o bot precisa ser admin no canal) com *fallback* para texto puro se o Markdown falhar. **Canal oficial: [@bolhadev_digest](https://t.me/bolhadev_digest)** — é para lá que vai a edição diária.
 - **🔔 Web Push** — botão **“Receber aviso”** no topo do site: qualquer visitante ativa a notificação diária no navegador (permissão + VAPID).
 - **💬 WhatsApp** — POST para o seu webhook (Evolution API / Baileys) com o resumo formatado.
 - **🧪 Teste sem disparar tudo** — o painel de Configurações tem botão de teste por canal (`POST /api/settings/test`).
