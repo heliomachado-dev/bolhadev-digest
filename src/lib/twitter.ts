@@ -7,6 +7,9 @@
 // 2. APIs públicas e gratuitas (sem chave) — Hacker News (front page) + DEV Community
 //    (artigos em alta do dia). Funcionam mesmo sem nenhuma configuração extra.
 // 3. Nada disponível → lista vazia: a edição continua sendo gerada, sem conteúdo inventado.
+//
+// Todas as fontes passam pelo filtro de autopromoção/spam (applyCurationFilter)
+// antes de virar edição — veja o bloco "Filtro de autopromoção" abaixo.
 
 export type CuratedItem = {
   originalId: string;
@@ -28,6 +31,88 @@ const str = (v: unknown): string => (typeof v === 'string' ? v.trim() : '');
 const num = (v: unknown): number => (typeof v === 'number' && Number.isFinite(v) ? v : 0);
 const asRecord = (v: unknown): Record<string, unknown> =>
   v && typeof v === 'object' ? (v as Record<string, unknown>) : {};
+
+// ---------------------------------------------------------------------------
+// Filtro de autopromoção / anúncios / spam
+//
+// Motivo: a hashtag #bolhadev é usada por alguns perfis para autopromover
+// jogos, cursos e sorteios. Como o fallback (dias sem cota do Gemini) publica
+// os itens BRUTOS, esses anúncios chegavam ao ar sem nenhuma revisão.
+// O filtro roda na COLEÇÃO — antes de qualquer edição ser montada — e vale
+// para todas as fontes (Apify/X, Hacker News e DEV Community).
+//
+// Configuração por env (com defaults razoáveis no código):
+// - CURATION_BLOCKLIST: autores bloqueados, separados por vírgula (ex.: fabert_)
+// - CURATION_FILTER_TERMS: termos promocionais (se definida, SUBSTITUI a lista default)
+// - CURATION_MAX_PER_AUTHOR: máx. de itens por autor por edição (default: 2)
+// ---------------------------------------------------------------------------
+
+// Termos que caracterizam anúncio/autopromoção (match por palavra inteira).
+const DEFAULT_PROMO_TERMS = [
+  'rmt',
+  'topidle',
+  'heroesfarm',
+  'gameonline',
+  'mmorpg',
+  'vamos fazer dinheiro',
+  'giveaway',
+  'sorteio',
+];
+
+function csvFromEnv(name: string): string[] {
+  return (process.env[name] || '')
+    .split(',')
+    .map((value) => value.trim().toLowerCase())
+    .filter(Boolean);
+}
+
+function maxItemsPerAuthor(): number {
+  const raw = Number(process.env.CURATION_MAX_PER_AUTHOR);
+  return Number.isFinite(raw) && raw > 0 ? Math.floor(raw) : 2;
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function isPromoItem(item: CuratedItem, blocked: Set<string>, terms: RegExp[]): boolean {
+  if (blocked.has(item.author.toLowerCase())) return true;
+  const text = item.text.toLowerCase();
+  return terms.some((term) => term.test(text));
+}
+
+/**
+ * Descarta itens promocionais/spam e limita quantos itens por autor entram
+ * na edição, preservando a ordem original de chegada.
+ */
+export function applyCurationFilter(items: CuratedItem[]): CuratedItem[] {
+  const blocked = new Set(csvFromEnv('CURATION_BLOCKLIST'));
+  const configuredTerms = csvFromEnv('CURATION_FILTER_TERMS');
+  const terms = (configuredTerms.length > 0 ? configuredTerms : DEFAULT_PROMO_TERMS).map(
+    (term) => new RegExp(`\\b${escapeRegExp(term)}\\b`, 'i')
+  );
+  const perAuthor = maxItemsPerAuthor();
+  const authorCounts = new Map<string, number>();
+  const kept: CuratedItem[] = [];
+
+  for (const item of items) {
+    if (isPromoItem(item, blocked, terms)) continue;
+
+    const key = item.author.toLowerCase();
+    const count = (authorCounts.get(key) || 0) + 1;
+    if (count > perAuthor) continue;
+    authorCounts.set(key, count);
+    kept.push(item);
+  }
+
+  if (kept.length < items.length) {
+    console.warn(
+      `Curadoria: ${items.length - kept.length} item(ns) descartado(s) por filtro de promo/spam ou limite por autor.`
+    );
+  }
+
+  return kept;
+}
 
 /**
  * 1) Tweets reais da #bolhadev via Apify (danek/twitter-scraper).
@@ -56,10 +141,13 @@ async function fetchFromApify(): Promise<CuratedItem[]> {
 
   const data: unknown = await res.json();
   const list = Array.isArray(data) ? data : [];
-  return list
-    .map(mapApifyTweet)
-    .filter((item): item is CuratedItem => item !== null)
-    .slice(0, 12);
+  // Filtra promo/spam e aplica o limite por autor ANTES de cortar em 12 —
+  // assim o corte sempre entrega até 12 itens válidos (quando houver).
+  return applyCurationFilter(
+    list
+      .map(mapApifyTweet)
+      .filter((item): item is CuratedItem => item !== null)
+  ).slice(0, 12);
 }
 
 /**
@@ -173,7 +261,7 @@ export async function fetchCuratedContent(): Promise<CuratedContent> {
     try {
       const tweets = await fetchFromApify();
       if (tweets.length > 0) return { items: tweets, source: 'x' };
-      console.warn('Apify não retornou tweets — usando fonte comunitária.');
+      console.warn('Apify não retornou tweets válidos (vazios ou todos filtrados) — usando fonte comunitária.');
     } catch (error) {
       console.warn(
         'Falha ao buscar tweets no Apify — usando fonte comunitária:',
@@ -207,5 +295,6 @@ export async function fetchCuratedContent(): Promise<CuratedContent> {
     if (devItems[i]) items.push(devItems[i]);
   }
 
-  return { items, source: 'community' };
+  // Mesmo filtro da fonte X: promo/spam e limite por autor nunca vão ao ar
+  return { items: applyCurationFilter(items), source: 'community' };
 }

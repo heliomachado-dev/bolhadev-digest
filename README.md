@@ -29,7 +29,7 @@ Uma edição diária · três resumos gerados por IA · **Telegram, WhatsApp e P
 - 🔐 **Cron protegido** — o endpoint de geração exige `Authorization: Bearer $CRON_SECRET` (a Vercel injeta o header automaticamente) e tem **dedupe diário**: no máximo uma edição por dia.
 - 🗄️ **Postgres serverless** — Neon (free tier) com pool de conexões, pronto para produção.
 - 📱 **Leitor PWA** — instala no celular/desktop, tema escuro, histórico das edições.
-- 🔌 **Fontes em camadas, sem conteúdo inventado** — tweets reais da **#bolhadev** via Apify quando você configura o token; senão, destaques **reais e gratuitos** de Hacker News + DEV Community; se tudo falhar, a edição sai sem os cards — nunca com dados falsos.
+- 🔌 **Fontes em camadas, sem conteúdo inventado** — tweets reais da **#bolhadev** via Apify quando você configura o token; senão, destaques **reais e gratuitos** de Hacker News + DEV Community; se tudo falhar, a edição sai sem os cards — nunca com dados falsos. **Tudo passa por um filtro de autopromoção/anúncio** (autores bloqueados, termos de spam e limite de itens por autor) — inclusive no fallback sem IA.
 
 ## 🏗️ Arquitetura
 
@@ -110,6 +110,7 @@ Abra [http://localhost:3000](http://localhost:3000), clique em **«Gerar Ediçã
 | `SCHEDULE_TIME` | ⭕ | Horário padrão do envio (ex.: `09:17`, fuso de Brasília) |
 | `AUTO_SCHEDULE` | ⭕ | `true` ativa o agendamento automático |
 | `APIFY_API_TOKEN` | ⭕ | **Tweets reais da #bolhadev** via [Apify](https://apify.com) (`danek/twitter-scraper` — free: 20/run, ~US$0,11/mês) |
+| `CURATION_BLOCKLIST` / `CURATION_FILTER_TERMS` / `CURATION_MAX_PER_AUTHOR` | ⭕ | **Filtro de autopromoção/anúncios** da curadoria: autores bloqueados, termos de anúncio (default: `rmt`, `topidle`, `heroesfarm`, `mmorpg`, `sorteio`...) e máx. itens por autor por edição (default `2`) |
 | `NEXT_PUBLIC_VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` | ⭕ | Web Push — gere com `npx web-push generate-vapid-keys` |
 | `WHATSAPP_WEBHOOK_URL` | ⭕ | Webhook que recebe o resumo de WhatsApp |
 

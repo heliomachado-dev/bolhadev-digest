@@ -54,12 +54,16 @@ export async function summarizeTweets(
   const prompt = `
 Você é o editor chefe do "BolhaDev Digest", uma newsletter diária de tecnologia.
 A fonte desta edição é: ${SOURCE_DESCRIPTIONS[source]}.
-Analise os itens abaixo e adicione também um panorama diário sobre **Novas Ferramentas do Mercado Tech** (lançamentos recentes de frameworks, bibliotecas, IAs ou ferramentas de desenvolvimento).
+Analise os itens abaixo e adicione também um panorama diário sobre **Novas Ferramentas do Mercado Tech**.
+
+Regras editoriais obrigatórias:
+- NUNCA transforme publicidade, autopromoção, divulgação de jogo, curso, sorteio, venda ou spam em destaque. Se um item for anúncio/selopromocional, simplesmente ignore-o.
+- Em "Novas Ferramentas do Mercado Tech", cite APENAS ferramentas que apareçam explicitamente nos itens de referência abaixo. Não invente, não sugira e não cite de memória nenhum produto que não esteja nos itens. Se nenhum item citar ferramenta nova, escreva exatamente: "Nenhuma ferramenta nova citada hoje."
 
 Produza três conteúdos distintos em Português do Brasil:
 1. \`summaryWeb\`: Um resumo completo em Markdown dividido em seções atraentes:
    - ${SECTION_LABELS[source]}
-   - 🛠️ **Novas Ferramentas do Mercado Tech** (destaque 2 a 3 ferramentas/tecnologias que estão bombando hoje no mercado mundial).
+   - 🛠️ **Novas Ferramentas do Mercado Tech** (apenas o que estiver nos itens de referência, pelas regras acima).
 2. \`summaryWpp\`: Um resumo ultra-compacto formatado para WhatsApp, com tópicos diretos, emojis, sem markdown complexo (use asteriscos para negrito).
 3. \`summaryPush\`: Uma frase curta e chamativa (máx 120 caracteres) para notificação push.
 
