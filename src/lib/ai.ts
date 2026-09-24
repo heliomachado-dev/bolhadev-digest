@@ -58,12 +58,16 @@ Analise os itens abaixo e adicione também um panorama diário sobre **Novas Fer
 
 Regras editoriais obrigatórias:
 - NUNCA transforme publicidade, autopromoção, divulgação de jogo, curso, sorteio, venda ou spam em destaque. Se um item for anúncio/selopromocional, simplesmente ignore-o.
-- Em "Novas Ferramentas do Mercado Tech", cite APENAS ferramentas que apareçam explicitamente nos itens de referência abaixo. Não invente, não sugira e não cite de memória nenhum produto que não esteja nos itens. Se nenhum item citar ferramenta nova, escreva exatamente: "Nenhuma ferramenta nova citada hoje."
+- Em "Novas Ferramentas do Mercado Tech", dê PRIORIDADE às ferramentas que aparecem explicitamente nos itens de referência abaixo — preferindo as que os itens ANUNCIAM, LANÇAM ou APRESENTAM (versão nova, beta, CLI, biblioteca, projeto) em vez de ferramentas citadas de passagem numa reclamação ou notícia (cite o autor/link do item de onde ela veio).
+- No máximo UMA ferramenta pode vir do seu próprio conhecimento (fora dos itens). Quando usar, marque-a OBRIGATORIAMENTE com este formato exato, em linha própria:
+  📌 *Fora dos itens de hoje — contexto do editor:* **Nome da ferramenta** — uma linha curta explicando o que é.
+  Regras dessa ferramenta marcada: de ampla adoção na comunidade dev, sem link de venda, sem chamada para compra/cadastro, e NUNCA alegue "lançamento recente" ou data (você não tem como verificar quando foi lançada).
+- Se não houver ferramenta nem nos itens nem a marcada, escreva exatamente: "Nenhuma ferramenta nova citada hoje."
 
 Produza três conteúdos distintos em Português do Brasil:
 1. \`summaryWeb\`: Um resumo completo em Markdown dividido em seções atraentes:
    - ${SECTION_LABELS[source]}
-   - 🛠️ **Novas Ferramentas do Mercado Tech** (apenas o que estiver nos itens de referência, pelas regras acima).
+   - 🛠️ **Novas Ferramentas do Mercado Tech** — prioriza as ferramentas dos itens de referência; no máximo 1 vinda do contexto do editor, e nesse caso SEMPRE com o marcador 📌 no formato definido acima.
 2. \`summaryWpp\`: Um resumo ultra-compacto formatado para WhatsApp, com tópicos diretos, emojis, sem markdown complexo (use asteriscos para negrito).
 3. \`summaryPush\`: Uma frase curta e chamativa (máx 120 caracteres) para notificação push.
 
