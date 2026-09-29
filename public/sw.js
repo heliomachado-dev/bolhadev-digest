@@ -21,12 +21,12 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('push', (event) => {
   const data = event.data
     ? event.data.json()
-    : { title: 'BolhaDev Digest', body: 'Nova edição disponível!', icon: '/favicon.ico' };
+    : { title: 'BolhaDev Digest', body: 'Nova edição disponível!', icon: '/icon-192.png' };
 
   event.waitUntil(
     self.registration.showNotification(data.title, {
       body: data.body,
-      icon: data.icon || '/favicon.ico',
+      icon: data.icon || '/icon-192.png',
       badge: '/favicon.ico',
     })
   );

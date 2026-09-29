@@ -1,6 +1,6 @@
 <div align="center">
 
-# 📰 BolhaDev Digest
+<img src="./public/logo.png" alt="BolhaDev Digest" width="240" />
 
 **Newsletter inteligente de tecnologia: curadoria automática, resumo por IA e disparo multicanal — todo dia, sem você tocar em nada.**
 

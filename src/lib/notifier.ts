@@ -125,7 +125,7 @@ export async function sendPushNotifications(title: string, body: string): Promis
       return { ok: false, skipped: true, error: 'Nenhuma inscrição push registrada' };
     }
 
-    const payload = JSON.stringify({ title, body, icon: '/favicon.ico' });
+    const payload = JSON.stringify({ title, body, icon: '/icon-192.png' });
     let sent = 0;
     let failed = 0;
     let lastError = '';

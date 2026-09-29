@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
-import { Settings, BookOpen, Sparkles, MessageSquare } from 'lucide-react';
+import Image from 'next/image';
+import { Settings, BookOpen, Sparkles } from 'lucide-react';
 import PushSubscribeButton from '@/components/PushSubscribeButton';
 import SchedulerWatcher from '@/components/SchedulerWatcher';
 
@@ -23,9 +24,14 @@ export default async function Home() {
       <header className="border-b border-slate-800 bg-slate-900/50 backdrop-blur sticky top-0 z-50">
         <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="bg-indigo-600 p-2 rounded-xl text-white shadow-lg shadow-indigo-500/20">
-              <MessageSquare className="w-6 h-6" />
-            </div>
+            <Image
+              src="/logo-emblem.png"
+              alt="BolhaDev Digest"
+              width={40}
+              height={40}
+              priority
+              className="w-10 h-10 rounded-xl shadow-lg shadow-slate-950/50"
+            />
             <div>
               <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
                 BolhaDev Digest <span className="text-xs bg-indigo-500/20 text-indigo-400 px-2 py-0.5 rounded-full border border-indigo-500/35">PWA</span>
