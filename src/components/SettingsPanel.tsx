@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { MessageSquare, Clock, Send } from 'lucide-react';
+import { MessageSquare, Clock, Send, Sparkles } from 'lucide-react';
+import GenerateButton from '@/components/GenerateButton';
 
 export default function SettingsPanel() {
   const [whatsappWebhook, setWhatsappWebhook] = useState('');
@@ -133,6 +134,17 @@ export default function SettingsPanel() {
           <MessageSquare className="w-5 h-5 text-emerald-400" /> WhatsApp (via Webhook)
         </h2>
         <input type="text" value={whatsappWebhook} onChange={(e) => setWhatsappWebhook(e.target.value)} placeholder="URL do Webhook (Opcional)" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-slate-100" />
+      </div>
+
+      <div className="space-y-4 pt-6 border-t border-slate-800">
+        <h2 className="text-xl font-bold text-white flex items-center gap-2">
+          <Sparkles className="w-5 h-5 text-amber-400" /> Geração Manual
+        </h2>
+        <p className="text-xs text-slate-500">
+          Fora do agendamento: coleta os destaques do agora e dispara imediatamente, ignorando horário,
+          envio automático e a dedupe diária (pode gerar uma segunda edição no mesmo dia).
+        </p>
+        <GenerateButton />
       </div>
 
       <button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-6 py-3 rounded-xl transition shadow-lg">

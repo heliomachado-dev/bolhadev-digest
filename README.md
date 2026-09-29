@@ -87,7 +87,7 @@ cp .env.example .env
 npm run dev
 ```
 
-Abra [http://localhost:3000](http://localhost:3000), clique em **«Gerar Edição Agora»** e veja a edição nascer.
+Abra [http://localhost:3000](http://localhost:3000), entre pela **engrenagem** em Configurações (login do admin) e clique em **«Gerar Edição Agora»** na seção *Geração Manual* para ver a edição nascer. A home não expõe mais esse botão.
 
 > ☁️ **Em produção:** [bolhadev-digest-machado15.vercel.app](https://bolhadev-digest-machado15.vercel.app) · ✈️ **Edições diárias:** canal [**@bolhadev_digest**](https://t.me/bolhadev_digest)
 
@@ -127,7 +127,7 @@ Abra [http://localhost:3000](http://localhost:3000), clique em **«Gerar Ediçã
 1. O `vercel.json` declara **24 jobs horários** (`0 H * * *`) — no plano Hobby cada job roda **uma vez por dia**, então um job por hora garante cobertura total.
 2. A rota `GET /api/cron/generate` valida a **hora de Brasília** contra o `scheduleTime` e o **dedupe diário** (`lastAutoSentDate`) → **exatamente uma edição por dia**, na janela certa.
 3. Autenticação: header `Authorization: Bearer $CRON_SECRET` (a Vercel envia sozinha quando a env var existe; chamadas sem token recebem `401`).
-4. `POST /api/cron/generate` dispara manualmente pela UI — **protegido pelo login do admin** (`src/proxy.ts`).
+4. `POST /api/cron/generate` dispara manualmente pelo botão **Geração Manual** em `/settings` — **protegido pelo login do admin** (`src/proxy.ts`); a home não mostra mais esse chamado.
 
 ## 🔐 Segurança
 
@@ -150,7 +150,7 @@ src/
 ├── proxy.ts                 # Exige cookie de sessão nas rotas admin (Next 16)
 ├── app/
 │   ├── page.tsx              # leitor da edição + cards de destaque
-│   ├── settings/             # login do admin OU painel: horário, canais, teste
+│   ├── settings/             # login do admin OU painel: horário, canais, teste, geração manual
 │   └── api/
 │       ├── auth/             # login · session · logout (cookie de 7 dias)
 │       ├── cron/generate/    # GET (cron, protegido) · POST (manual, login admin)

@@ -1,7 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
 import { Settings, BookOpen, Sparkles, MessageSquare } from 'lucide-react';
-import GenerateButton from '@/components/GenerateButton';
 import PushSubscribeButton from '@/components/PushSubscribeButton';
 import SchedulerWatcher from '@/components/SchedulerWatcher';
 
@@ -36,7 +35,6 @@ export default async function Home() {
           </div>
           <div className="flex items-center space-x-3">
             <PushSubscribeButton />
-            <GenerateButton />
             <Link
               href="/settings"
               title="Configurações"
@@ -56,7 +54,10 @@ export default async function Home() {
             <Sparkles className="w-12 h-12 text-indigo-400 mx-auto animate-pulse" />
             <h2 className="text-xl font-semibold">Nenhuma edição gerada ainda</h2>
             <p className="text-slate-400 max-w-md mx-auto text-sm">
-              Clique no botão <strong className="text-indigo-400">&quot;Gerar Edição Agora&quot;</strong> acima para coletar os destaques do dia e criar sua primeira newsletter inteligente.
+              As edições são geradas <strong className="text-indigo-400">automaticamente, todo dia</strong> no horário configurado. Volte mais tarde para conferir os destaques do dia.
+            </p>
+            <p className="text-slate-500 max-w-md mx-auto text-xs">
+              Administrador: clique na engrenagem no topo para entrar e gerar uma edição manualmente.
             </p>
           </div>
         ) : (
