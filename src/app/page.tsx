@@ -39,10 +39,11 @@ export default async function Home() {
             <GenerateButton />
             <Link
               href="/settings"
-              className="p-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl transition flex items-center gap-2 text-sm font-medium border border-slate-700"
+              title="Configurações"
+              aria-label="Configurações"
+              className="p-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl transition flex items-center text-sm font-medium border border-slate-700"
             >
               <Settings className="w-4 h-4" />
-              <span className="hidden sm:inline">Configurações</span>
             </Link>
           </div>
         </div>

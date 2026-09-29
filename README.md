@@ -112,7 +112,7 @@ Abra [http://localhost:3000](http://localhost:3000), clique em **«Gerar Ediçã
 | `CRON_SECRET` | ✅ (produção) | Segredo do cron — gere com `openssl rand -hex 32` |
 | `TELEGRAM_BOT_TOKEN` | ✅ | Token do bot ([@BotFather](https://t.me/BotFather)) |
 | `TELEGRAM_CHAT_ID` | ✅ | ID(s) de destino — aceita **vários separados por vírgula** (pessoal, grupo ou canal) |
-| `ADMIN_USERNAME` / `ADMIN_PASSWORD` | ✅ | **Login do painel** (Basic Auth em `/settings` e APIs admin) — sem elas as rotas admin respondem `503` |
+| `ADMIN_USERNAME` / `ADMIN_PASSWORD` | ✅ | **Login do painel** (tela em `/settings` + cookie de sessão de 7 dias) — sem elas as rotas admin respondem `503` |
 | `SCHEDULE_TIME` | ⭕ | Horário padrão do envio (ex.: `09:17`, fuso de Brasília) |
 | `AUTO_SCHEDULE` | ⭕ | `true` ativa o agendamento automático |
 | `APIFY_API_TOKEN` | ⭕ | **Tweets reais da #bolhadev** via [Apify](https://apify.com) (`danek/twitter-scraper` — free: 20/run, ~US$0,11/mês) |
@@ -131,7 +131,7 @@ Abra [http://localhost:3000](http://localhost:3000), clique em **«Gerar Ediçã
 
 ## 🔐 Segurança
 
-- **Painel protegido** — `src/proxy.ts` (proxy do Next 16) aplica **HTTP Basic Auth** em `/settings`, `POST/GET /api/settings*` e `POST /api/cron/generate`: sem login ninguém lê o bot token nem dispara edições. Fail-closed (`503`) se as envs `ADMIN_*` não existirem.
+- **Painel protegido** — a home expõe só a **engrenagem** (sem rótulo); ao clicar, `/settings` mostra a **tela de login** (usuário/senha) e, autenticado, o painel com botão **Sair**. O login (`POST /api/auth/login`) emite um **cookie httpOnly assinado com HMAC-SHA256 por 7 dias** (`src/lib/auth.ts`) e `src/proxy.ts` (proxy do Next 16) exige esse cookie em `POST/GET /api/settings*` e `POST /api/cron/generate`: sem sessão ninguém lê o bot token nem dispara edições. Fail-closed (`503`) se as envs `ADMIN_*` não existirem. Não há Basic Auth (popup do navegador).
 - **Cron** — só o Vercel Cron autenticado com `CRON_SECRET` gera a edição automática.
 - **Site público** — a home e as edições ficam abertos; segredos nunca aparecem lá.
 - **Segredos no git** — `.env` ignorado desde o início, `.env.example` só com placeholders e token antigo de bot já revogado.
@@ -147,20 +147,22 @@ Abra [http://localhost:3000](http://localhost:3000), clique em **«Gerar Ediçã
 
 ```
 src/
-├── proxy.ts                 # Basic Auth do painel e das rotas admin (Next 16)
+├── proxy.ts                 # Exige cookie de sessão nas rotas admin (Next 16)
 ├── app/
 │   ├── page.tsx              # leitor da edição + cards de destaque
-│   ├── settings/             # painel: horário, canais, teste de envio
+│   ├── settings/             # login do admin OU painel: horário, canais, teste
 │   └── api/
+│       ├── auth/             # login · session · logout (cookie de 7 dias)
 │       ├── cron/generate/    # GET (cron, protegido) · POST (manual, login admin)
 │       ├── settings/         # configurações + teste por canal (login admin)
 │       └── push/             # inscrição de Web Push (pública)
-├── components/               # GenerateButton, PushSubscribeButton, SchedulerWatcher
+├── components/               # GenerateButton · LoginForm · SettingsPanel · LogoutButton · PushSubscribeButton · SchedulerWatcher
 └── lib/
     ├── twitter.ts            # fontes em camadas: Apify → HN + DEV → vazio
     ├── ai.ts                 # Gemini + fallback real sem IA
     ├── notifier.ts           # Telegram (multi-destino) · Push · WhatsApp
     ├── settings.ts           # config: banco primeiro, env como fallback
+    ├── auth.ts               # sessão HMAC do painel (login/senha do admin)
     └── prisma.ts
 prisma/schema.prisma          # Newsletter · Tweet · Settings · PushSubscription
 public/sw.js                  # Service Worker vanilla (push + cache PWA)
